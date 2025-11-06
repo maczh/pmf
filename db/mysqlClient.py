@@ -8,7 +8,7 @@ from sqlalchemy import (
     create_engine, Column, BigInteger, String, DateTime, text, engine
 )
 
-Base = declarative_base()
+BaseModel = declarative_base()
 
 class mysql:
     """
@@ -97,7 +97,7 @@ class mysql:
             self.Engine = create_engine(self.uri, pool_pre_ping=True,echo=self.debug,
                                         pool_size=self.pool_size,
                                         max_overflow=self.max_overflow)
-            self.SessionLocal = sessionmaker(autocommit=True, autoflush=True, bind=self.Engine)
+            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.Engine)
         except Exception as e:
             print(f"MySQL连接失败: {e}")
             raise e

@@ -32,7 +32,7 @@ class EtcdRegistry:
             print(f"Failed to register service: {str(e)}")
             return False
 
-    def discover_service(self, service_name: str,cluster = "DEFAULT_CLUSTER",group = "DEFAULT_GROUP",project = "DEFAULT_PROJECT") -> str:
+    def discover_service(self, service_name: str,cluster = "DEFAULT_CLUSTER",group = "DEFAULT_GROUP",project = "DEFAULT_PROJECT") -> Optional[str]:
         """
         Discover a service by name
         Args:

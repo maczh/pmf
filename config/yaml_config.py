@@ -6,8 +6,6 @@ from typing import Any, Dict, List, Union
 import yaml
 from urllib.error import URLError, HTTPError
 from urllib.request import Request, urlopen
-# /d:/Projects/python/test1/test01.py
-# 读取同目录下的 test01.yml，解析为对象模型并以 JSON 输出
 
 
 

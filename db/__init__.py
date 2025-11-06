@@ -1,4 +1,5 @@
-from . import mysql,mongo
+from . import mongoClient, mysqlClient,redisClient
 
-from .mysql import get_session, get_engine, check_connection, close
-from .mongo import get_collection, close, check_connection
+from .mongoClient import mongo
+from .mysqlClient import mysql
+from .redisClient import RedisClient

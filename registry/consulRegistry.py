@@ -9,7 +9,7 @@ class ConsulRegistry:
     def __init__(self, host: str = "localhost", port: int = 8500):
         """Initialize Consul client."""
         self.consul_client = consul.Consul(host=host, port=port)
-        self.prefix = "services/"
+        self.prefix = "services"
 
     def register_service(self, service_name: str, service_ip: str, service_port: int,protocol = "http",cluster = "DEFAULT_CLUSTER",group = "DEFAULT_GROUP",project = "DEFAULT_PROJECT") -> bool:
         """
@@ -25,20 +25,20 @@ class ConsulRegistry:
             # hashlib requires bytes; encode the string before hashing.
             # Use md5(bytes).hexdigest() or update() then hexdigest().
             instanceId = md5(val.encode('utf-8')).hexdigest()
-            key = f"{self.prefix}-{cluster}-{group}-{project}-{service_name}"
+            key = f"{self.prefix}/{cluster}/{group}/{project}/{service_name}"
 
-            # Delete existing registration if any
-            # self.consul_client.agent.service.deregister(instanceId)
-
-            # Register new service instance
-            success = self.consul_client.agent.service.register(
-                name=service_name,
+            # Register new service instance. python-consul's register() does not
+            # return a boolean on success, it raises on failure. Return True when
+            # no exception is raised.
+            self.consul_client.agent.service.register(
+                name=key,
                 service_id=instanceId,
                 address=service_ip,
                 port=service_port,
-                tags=[val]
+                tags=[val],
+                check=None  # Disable health check for simplicity
             )
-            return success
+            return True
 
         except Exception as e:
             print(f"Error registering service: {str(e)}")
@@ -55,16 +55,36 @@ class ConsulRegistry:
             Random service URL or None if no services found
         """
         try:
-            # Get all instances for the service
+            # Get all registered services from the local agent and filter by
+            # the full service name we used when registering (key).
             key = f"{self.prefix}/{cluster}/{group}/{project}/{service_name}"
-            _, instances = self.consul_client.health.service(key)
+            # services = self.consul_client.agent.services()
+
+            _,instances = self.consul_client.health.service(key, passing=True)
+            
+            # services is a dict keyed by service_id; values are dicts
+            # instances = [s for s in services.values() if s.get('Service') == key]
+            # Debug print for visibility when running directly
+            # print(f"Discovered instances for {key}: {instances}")
 
             if not instances:
                 return None
 
-            # Randomly select one instance
+            # Randomly select one instance. Prefer the tag value (we stored the
+            # URL there). If tags are missing, fall back to address:port.
             instance = random.choice(instances)
-            return instance['Tags'][0].decode('utf-8')
+            service = instance.get('Service') or instance.get('Service', {})
+            tags = service.get('Tags') or []
+            if tags:
+                # Tags from python-consul are regular strings
+                return tags[0]
+
+            address = service.get('Address')
+            port = service.get('Port')
+            if address and port:
+                return f"http://{address}:{port}"
+
+            return None
 
         except Exception as e:
             print(f"Error discovering service: {str(e)}")
@@ -85,7 +105,10 @@ class ConsulRegistry:
             # Use md5(bytes).hexdigest() or update() then hexdigest().
             instanceId = md5(val.encode('utf-8')).hexdigest()
            
-            return self.consul_client.agent.service.deregister(instanceId)
+            # python-consul deregister does not return a boolean; return True on
+            # success (no exception) to match other registry implementations.
+            self.consul_client.agent.service.deregister(instanceId)
+            return True
 
         except Exception as e:
             print(f"Error deregistering service: {str(e)}")
@@ -102,7 +125,7 @@ if __name__ == "__main__":
     print(f"Discovered service URL: {service_url}")
     service_url = registry.discover_service("test_service",project="jihai-kmp")
     print(f"Discovered service URL: {service_url}")
-    registry.deregister_service("test_service","192.168.2.3",8080,project="jihai-kmp")
-    registry.deregister_service("test_service","192.168.2.4",8080,project="jihai-kmp")
-    registry.deregister_service("test_service","192.168.2.5",8080,project="jihai-kmp")
+    # registry.deregister_service("test_service","192.168.2.3",8080)
+    # registry.deregister_service("test_service","192.168.2.4",8080)
+    # registry.deregister_service("test_service","192.168.2.5",8080)
         

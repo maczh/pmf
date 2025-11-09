@@ -3,10 +3,7 @@ import hashlib
 import json
 import logging
 import random
-import socket
-import time
-import ipaddress
-from typing import List, Tuple, Optional, Any, Dict
+from typing import Optional, Any, Dict
 
 import requests
 
@@ -17,50 +14,6 @@ def get_instance_id(ip: str, port: int) -> str:
     s = f"http://{ip}:{port}"
     md5v = hashlib.md5(s.encode("utf-8")).hexdigest()
     return md5v[:4]
-
-def local_ipv4s(lan: bool, lan_network: str) -> Tuple[List[str], Optional[Exception]]:
-    """
-    返回符合条件的 IPv4 列表（优先根据 lan 和 lan_network 筛选）
-    尝试从所有接口解析可能的 IPv4 地址；若失败则使用 hostname 解析作为后备。
-    """
-    ips: List[str] = []
-    ip_lans: List[str] = []
-    ip_wans: List[str] = []
-    try:
-        host_name = socket.gethostname()
-        addrs = socket.getaddrinfo(host_name, None, family=socket.AF_INET)
-        seen = set()
-        for addr in addrs:
-            ip = addr[4][0]
-            if ip in seen:
-                continue
-            seen.add(ip)
-            ip_obj = ipaddress.ip_address(ip)
-            if ip_obj.is_private:
-                ip_lans.append(ip)
-                if lan and (lan_network == "" or ip.startswith(lan_network)):
-                    ips.append(ip)
-            else:
-                ip_wans.append(ip)
-                if not lan:
-                    ips.append(ip)
-        # 如果没有找到匹配，根据 lan 取相反集合作为后备
-        if not ips:
-            if lan:
-                ips.extend(ip_wans)
-            else:
-                ips.extend(ip_lans)
-        # 最后仍为空则使用 127.0.0.1
-        if not ips:
-            ips.append("127.0.0.1")
-        return ips, None
-    except Exception as e:
-        # 后备：尝试直接解析主机名/IP
-        try:
-            ip = socket.gethostbyname(socket.gethostname())
-            return [ip], None
-        except Exception:
-            return [], e
 
 class PolarisClient:
     def __init__(self, server_addr: str = "http://127.0.0.1:8090",

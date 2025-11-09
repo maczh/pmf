@@ -1,0 +1,13 @@
+go:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password:
+      database: 1
+      timeout: 1000
+    redis_pool:
+      min: 3        #最小空闲连接数,默认2
+      max: 200      #连接池大小，最小默认10
+      idle: 10      #空闲超时，分钟,默认5分钟
+      timeout: 300  #连接超时，秒，默认60秒

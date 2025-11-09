@@ -42,13 +42,17 @@ class YamlConfig:
         return f"{self._value!r}"
 
 
-def load_yaml_config(path: Union[str, Path]) -> YamlConfig:
+def load_yaml_config(path: Union[str, Path] = None,config_data:str = None) -> YamlConfig:
     """
     Load YAML from a local file path or an http/https URL and return a YamlConfig.
     Supports using 'requests' if available, otherwise falls back to urllib.
     """
     import urllib.parse
 
+    if config_data:
+        data = yaml.safe_load(config_data)
+        return YamlConfig.from_obj(data)
+    
     path_str = str(path)
     parsed = urllib.parse.urlparse(path_str)
 

@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print(f"Discovered service URL: {service_url}")
     service_url = registry.discover_service("test_service",project="jihai-kmp")
     print(f"Discovered service URL: {service_url}")
-    # registry.deregister_service("test_service","192.168.2.3",8080)
-    # registry.deregister_service("test_service","192.168.2.4",8080)
-    # registry.deregister_service("test_service","192.168.2.5",8080)
+    registry.deregister_service("test_service","192.168.2.3",8080)
+    registry.deregister_service("test_service","192.168.2.4",8080)
+    registry.deregister_service("test_service","192.168.2.5",8080)
         

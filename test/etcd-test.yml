@@ -1,0 +1,10 @@
+go:
+  etcd:
+    server:  118.31.124.97   #etcd服务IP
+    port: 12379            #etcd端口
+    clusterName: DEFAULT
+    group: jhBase    #根据项目不同配置不同分组
+    weight: 1
+    lan: false   #以内网地址注册，否则以公网地址注册
+    lanNet: 192.168.113.    #网段前缀`
+    prefix:

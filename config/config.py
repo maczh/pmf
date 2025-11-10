@@ -2,13 +2,15 @@
 from .yaml_config import load_yaml_config, YamlConfig
 import os
 import etcd3
+import requests
 import logging
+import json
 from urllib.parse import urlparse
 
 logger = logging.getLogger("config")
 logging.basicConfig(level=logging.DEBUG)
 
-def get_plugin_config(config_type: str, config_server: str, plugin_name: str, env: str = "test", file_ext: str = "yml", app_project: str = "default",local_path: str = None) -> YamlConfig:
+def get_plugin_config(config_type: str, config_server: str, plugin_name: str, env: str = "test", file_ext: str = ".yml", app_project: str = "default",local_path: str = None) -> YamlConfig:
     """
     Get plugin configuration from different configuration centers
     
@@ -28,7 +30,16 @@ def get_plugin_config(config_type: str, config_server: str, plugin_name: str, en
     elif config_type == "nacos":
         config_file_path = f"{config_server}/nacos/v1/cs/configs?group={app_project}&dataId={config_filename}"
     elif config_type == "polaris":
-        config_file_path = f"{config_server}/config/v1/configfiles/release?namespace=default&group=/{app_project}&name={config_filename}"
+        config_file_path = f"{config_server}/config/v1/GetConfigFile?namespace=default&group={app_project}&fileName={config_filename}"
+        response = requests.get(config_file_path, timeout=5)
+        if response.status_code != 200:
+            logger.error(f"Failed to get config from Polaris: {response.status_code}")
+            return None
+        resp = json.loads(response.text)
+        if resp.get("code") != 200000:
+            logger.error(f"Polaris config fetch error: {resp.get('message')}")
+            return None
+        return load_yaml_config(config_data=resp.get("configFile").get("content"))
     elif config_type == "etcd":
         purl = urlparse(config_server)
         host = purl.hostname or "localhost"

@@ -1,6 +1,7 @@
 import sys
 import os
 import fastapi
+import uvicorn
 
 # 添加项目根目录到Python路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,3 +18,6 @@ def read_root():
 #  result = Result.success(data={"name": "John", "age": 30})
 #  print(result.to_dict())  # 输出: {'code': 200, 'msg': 'success', 'data': {'name': 'John', 'age': 30}}
 #  print(result.to_json())  # 输出: {"code":200,"msg":"success","data":{"name":"John","age":30}}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8009)

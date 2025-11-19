@@ -118,7 +118,7 @@ class App:
             if consul_config.pmf.consul.lan.to_primitive():
                  for ip in ips:
                     if ip.startswith(etcd_config.pmf.consul.lanNet.to_primitive()):
-                        self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project)
+                        self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project, cluster = consul_config.pmf.consul.cluster.to_primitive(),group = consul_config.pmf.consul.group.to_primitive())
                         break
             else:
                 # 优先返回公网IP，若无公网IP则返回任意一个内网IP
@@ -131,5 +131,5 @@ class App:
                     elif ip.startswith(('192.168.', '10.', '172.')):
                         private_ip = ip
                 ip = public_ip if public_ip else (private_ip if private_ip else ips[0])
-                self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project)
+                self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project, cluster = consul_config.pmf.consul.cluster.to_primitive(),group = consul_config.pmf.consul.group.to_primitive())
             logger.debug(f"Consul服务注册完成")

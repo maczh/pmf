@@ -25,8 +25,10 @@ class EtcdRegistry:
             # Use md5(bytes).hexdigest() or update() then hexdigest().
             instanceId = md5(val.encode('utf-8')).hexdigest()
             key = f"{self.prefix}/{cluster}/{group}/{project}/{service_name}/{instanceId}"
+            print(f"Registering etcd service with key: {key}, value: {val}")
             lease = self.client.lease(self.lease_ttl)
-            self.client.put(key, val, lease=lease)
+            resp = self.client.put(key, val, lease=lease)
+            print(f"etcd注册结果: {resp}")
             return True
         except Exception as e:
             print(f"Failed to register service: {str(e)}")

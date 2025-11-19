@@ -1,6 +1,6 @@
-go:
+pmf:
   data:
-    mysql: jihai:Voodoo#123456@tcp(172.30.226.52:3306)/jihai?charset=utf8&parseTime=True&loc=Local
+    mysql: mysql+pymysql://jihai:Voodoo#123456@127.0.0.1:3306/jihai?charset=utf8
     mysql_debug: true   #打开调试模式
     mysql_pool:     #连接池设置,若无此项则使用单一长连接
       max: 200      #实际最大连接数

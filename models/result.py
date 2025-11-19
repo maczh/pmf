@@ -24,7 +24,7 @@ class Result:
         return cls(code=200, msg=msg, data=data)
 
     @classmethod
-    def success(cls, data: Any = None,  page_index: int = 1, page_size: int = 10, total: int = 0) -> 'Result':
+    def success_page(cls, data: Any = None,  page_index: int = 1, page_size: int = 10, total: int = 0) -> 'Result':
         """
         创建成功响应
         :param data: 响应数据

@@ -1,4 +1,4 @@
-import os
+import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
@@ -7,6 +7,8 @@ from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy import (
     create_engine, Column, BigInteger, String, DateTime, text, engine
 )
+
+logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
 
 BaseModel = declarative_base()
 

@@ -1,4 +1,6 @@
 from pymongo import MongoClient
+import logging
+logging.getLogger("pymongo").setLevel(logging.WARNING)
 
 class mongo:
     uri = str

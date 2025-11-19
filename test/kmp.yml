@@ -18,7 +18,7 @@ pmf:
     server_type: file
     env: test
     type: .yml
-    used: mysql
+    used: mysql,mongo
     prefix:
       nacos: nacos
       qmgo: mongo

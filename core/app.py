@@ -20,6 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class App:
     config_file = ""
     app = FastAPI()
@@ -133,3 +134,5 @@ class App:
                 ip = public_ip if public_ip else (private_ip if private_ip else ips[0])
                 self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project, cluster = consul_config.pmf.consul.cluster.to_primitive(),group = consul_config.pmf.consul.group.to_primitive())
             logger.debug(f"Consul服务注册完成")
+
+app: App = None

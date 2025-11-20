@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy import  text
 from sqlalchemy.orm import  Session, declarative_base
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 # 添加项目根目录到Python路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +15,10 @@ from models import Result
 from middleware.postlog import LoggingMiddleware
 
 router = APIRouter(prefix="/api/v1")
+
+class SendMqttMsgReq(BaseModel):
+    topic: str
+    msg: str
 
 @router.get("/paychannel")
 def get_pay_order(channel_id: str):
@@ -41,6 +46,12 @@ def get_rustfs_list(prefix: str = ''):
     objs = app.app.client.s3.list_objects(prefix=prefix)
     return Result.success(data=objs)
 
+
+@router.post("/mqtt/send")
+def post_mqtt_msg(req: SendMqttMsgReq):
+    app.app.client.mqtt.publish(topic=req.topic, payload=req.msg)
+    print(f"send mqtt msg to topic:{req.topic}, msg:{req.msg}")
+    return Result.success()
 
 if __name__ == "__main__":
     myapp = app.App(config_file="test/kmp.yml")

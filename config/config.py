@@ -43,7 +43,8 @@ def get_plugin_config(config_type: str, config_server: str, plugin_name: str, en
         host = purl.hostname or "localhost"
         port = purl.port or 2379
         client = etcd3.client(host=host, port=port)
-        key = f"configs/{app_project}/{config_filename}"
+        logging.debug(f"host={host}, etcd={client}")
+        key = f"/configs/{app_project}/{config_filename}"
         etcd_value, _ = client.get(key)
         if etcd_value is None:
             logging.error(f"Config not found in etcd for key: {key}")

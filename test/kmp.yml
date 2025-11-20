@@ -14,7 +14,7 @@ pmf:
   jwt:
     secret: 3d8e0bd8e3cc46b0913d325c6a6013fc
   config:
-    server: http://127.0.0.1:8090
+    server: http://127.0.0.1:2379
     server_type: file
     env: test
     type: .yml

@@ -10,6 +10,7 @@ class MQTTClient:
         self.broker = broker
         self.port = port
         self.client.on_connect = self.on_connect
+        self.connect()
 
     def connect(self):
         self.client.connect(host=self.broker, port=self.port)

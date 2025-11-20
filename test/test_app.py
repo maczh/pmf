@@ -36,6 +36,12 @@ def get_pay_order(channel_id: str):
     except Exception as e:
         return Result.error(msg=str(e))
 
+@router.get("/rustfs/list")
+def get_rustfs_list(prefix: str = ''):
+    objs = app.app.client.s3.list_objects(prefix=prefix)
+    return Result.success(data=objs)
+
+
 if __name__ == "__main__":
     myapp = app.App(config_file="test/kmp.yml")
     myapp.app.add_middleware(LoggingMiddleware)

@@ -11,15 +11,13 @@ from db import RedisClient,mongo,mysql
 from registry import etcdRegistry,consulRegistry,polarisRegistry,nacosRegistry
 from fastapi import FastAPI
 from utils import iputil
+from mq.mqtt import MQTTClient
+from mq.rabbit import RabbitMQClient
+from storage.s3 import S3Manager
+from storage.alioss import OSSManager
 import uvicorn
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
 logger = logging.getLogger(__name__)
-
 
 class App:
     config_file = ""
@@ -134,5 +132,65 @@ class App:
                 ip = public_ip if public_ip else (private_ip if private_ip else ips[0])
                 self.client.consul.register_service(service_name=self.config.pmf.application.name.to_primitive(), service_ip=ip, service_port=self.config.pmf.application.port.to_primitive(), project=app_project, cluster = consul_config.pmf.consul.cluster.to_primitive(),group = consul_config.pmf.consul.group.to_primitive())
             logger.debug(f"Consul服务注册完成")
+
+        if "mqtt" in used_clients:
+            mqtt_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mqtt.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化MQTT客户端,配置信息为：{mqtt_config}")
+            self.client.mqtt = MQTTClient(broker=mqtt_config.pmf.data.mqtt.broker.to_primitive(),
+                                        port=mqtt_config.pmf.data.mqtt.port.to_primitive(),
+                                        username=mqtt_config.pmf.data.mqtt.username.to_primitive(),
+                                        password=mqtt_config.pmf.data.mqtt.password.to_primitive(),
+                                        client_id=mqtt_config.pmf.data.mqtt.client_id.to_primitive())
+            logger.debug(f"MQTT客户端初始化完成")
+
+        if "rabbit" in used_clients:
+            rabbit_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rabbit.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化RabbitMQ客户端,配置信息为：{rabbit_config}")
+            self.client.rabbitmq = RabbitMQClient(host=rabbit_config.pmf.rabbit.host.to_primitive(),
+                                        port=rabbit_config.pmf.rabbit.port.to_primitive(),
+                                        username=rabbit_config.pmf.rabbit.username.to_primitive(),
+                                        password=rabbit_config.pmf.rabbit.password.to_primitive(),
+                                        virtual_host=rabbit_config.pmf.rabbit.virtual_host.to_primitive())
+            logger.debug(f"RabbitMQ客户端初始化完成")
+            
+        if "s3" in used_clients:
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.s3.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化S3客户端,配置信息为：{s3_config}")
+            self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.s3.endpoint.to_primitive(),
+                                       region_name=s3_config.pmf.s3.region.to_primitive(),
+                                       access_key=s3_config.pmf.s3.access_key.to_primitive(),
+                                       secret_key=s3_config.pmf.s3.secret_key.to_primitive(),
+                                       bucket=s3_config.pmf.s3.bucket.to_primitive())
+            logger.debug(f"S3客户端初始化完成")
+
+        if "ceph" in used_clients:
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.ceph.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化ceph客户端,配置信息为：{s3_config}")
+            self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.ceph.endpoint.to_primitive(),
+                                       region_name=s3_config.pmf.ceph.region.to_primitive(),
+                                       access_key=s3_config.pmf.ceph.access_key.to_primitive(),
+                                       secret_key=s3_config.pmf.ceph.secret_key.to_primitive(),
+                                       bucket=s3_config.pmf.ceph.bucket.to_primitive())
+            logger.debug(f"ceph客户端初始化完成")
+
+        if "minio" in used_clients:
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.minio.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化MinIO客户端,配置信息为：{s3_config}")
+            self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.minio.endpoint.to_primitive(),
+                                       region_name=s3_config.pmf.minio.region.to_primitive(),
+                                       access_key=s3_config.pmf.minio.access_key.to_primitive(),
+                                       secret_key=s3_config.pmf.minio.secret_key.to_primitive(),
+                                       bucket=s3_config.pmf.minio.bucket.to_primitive())
+            logger.debug(f"MinIO客户端初始化完成")
+
+        if "rustfs" in used_clients:
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rustfs.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            logger.debug(f"正在初始化RustFS客户端,配置信息为：{s3_config}")
+            self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.rustfs.endpoint.to_primitive(),
+                                       region_name=s3_config.pmf.rustfs.region.to_primitive(),
+                                       access_key=s3_config.pmf.rustfs.access_key.to_primitive(),
+                                       secret_key=s3_config.pmf.rustfs.secret_key.to_primitive(),
+                                       bucket=s3_config.pmf.rustfs.bucket.to_primitive())
+            logger.debug(f"RustFS客户端初始化完成")
 
 app: App = None

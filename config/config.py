@@ -7,8 +7,6 @@ import logging
 import json
 from urllib.parse import urlparse
 
-logger = logging.getLogger("config")
-logging.basicConfig(level=logging.DEBUG)
 
 def get_plugin_config(config_type: str, config_server: str, plugin_name: str, env: str = "test", file_ext: str = ".yml", app_project: str = "default",local_path: str = None) -> YamlConfig:
     """
@@ -33,11 +31,11 @@ def get_plugin_config(config_type: str, config_server: str, plugin_name: str, en
         config_file_path = f"{config_server}/config/v1/GetConfigFile?namespace=default&group={app_project}&fileName={config_filename}"
         response = requests.get(config_file_path, timeout=5)
         if response.status_code != 200:
-            logger.error(f"Failed to get config from Polaris: {response.status_code}")
+            logging.error(f"Failed to get config from Polaris: {response.status_code}")
             return None
         resp = json.loads(response.text)
         if resp.get("code") != 200000:
-            logger.error(f"Polaris config fetch error: {resp.get('message')}")
+            logging.error(f"Polaris config fetch error: {resp.get('message')}")
             return None
         return load_yaml_config(config_data=resp.get("configFile").get("content"))
     elif config_type == "etcd":
@@ -48,12 +46,12 @@ def get_plugin_config(config_type: str, config_server: str, plugin_name: str, en
         key = f"configs/{app_project}/{config_filename}"
         etcd_value, _ = client.get(key)
         if etcd_value is None:
-            logger.error(f"Config not found in etcd for key: {key}")
+            logging.error(f"Config not found in etcd for key: {key}")
             return None
         return load_yaml_config(config_data=etcd_value.decode('utf-8'))
     else:
-        logger.error(f"Unsupported config type: {config_type}")
+        logging.error(f"Unsupported config type: {config_type}")
         return None
-    logger.debug(f"Loading config from: {config_file_path}")
+    logging.debug(f"Loading config from: {config_file_path}")
     return load_yaml_config(config_file_path)
 

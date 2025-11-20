@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 import sys
 import os
-import asyncio
+import json
 
 # 添加项目根目录到Python路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,11 +14,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from core import app
 
 # 配置 logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
+# logging.basicConfig(
+#     level=logging.DEBUG,
+#     format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
+#     datefmt='%Y-%m-%d %H:%M:%S'
+# )
+logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -43,13 +44,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         request_params.update(dict(request.query_params))
         request_info["body"] = request_params
         # 输出日志
-        logging.debug(f"{request_info['method']}|接口地址:{request_info['uri']} | 请求参数:{request_params}")
+        logger.debug(f"{request_info['method']}|接口地址:{request_info['uri']} | 请求参数:{request_params}")
 
         # 执行请求
         response: Response = await call_next(request)
 
         # 响应信息
-        process_time = time.time() - start_time
+        process_time = (time.time() - start_time) * (10 ^ 6)
         end_dt = datetime.utcnow()
 
         try:
@@ -64,26 +65,22 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response_text = response_body.decode("utf-8")
         except Exception:
             response_text = None
-        logging.debug(f"{request_info['method']}|接口地址:{request_info['uri']} | 响应参数:{response_text}")
+        logger.debug(f"{request_info['method']}|接口地址:{request_info['uri']} | 响应参数:{response_text}")
 
         log_data = {
             "uri": request_info["uri"],
             "method": request_info["method"],
             "headers": request_info["headers"],
             "request_body": request_info["body"],
-            "response_body": response_text,
-            "start_time": start_dt.isoformat(),
-            "end_time": end_dt.isoformat(),
+            "response_body": json.loads(response_text) if response_text else None,
+            "start_time": time.strftime("%Y-%m-%d %H:%M:%S",start_dt.timetuple()),
+            "end_time": time.strftime("%Y-%m-%d %H:%M:%S",end_dt.timetuple()),
             "ttl": process_time,
         }
 
-        # 打印日志
-        # logging.info(f"API Log: {log_data}")
-
         # 保存到 MongoDB
-        print(f"mongo={app.app.client.mgo}")
         if app.app.client.mgo is not None:
-            logging.debug("开始写入mongodb日志")
+            logger.debug("开始写入mongodb日志")
             app.app.client.mgo.get_collection(app.app.config.pmf.log.req.to_primitive()).insert_one(log_data)
 
         return response

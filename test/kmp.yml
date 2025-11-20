@@ -18,17 +18,18 @@ pmf:
     server_type: file
     env: test
     type: .yml
-    used: mysql,mongo
+    used: mysql,mongo,rustfs
     prefix:
       nacos: nacos
-      qmgo: mongo
+      rustfs: rustfs
       mongo: mongo
       redis: redis
       mysql: mysql
       etcd: etcd
       mqtt: mqtt
+
   log:
-    req: jhKryMpOrderReqLog
+    req: KmpReqLog
     api: jhKryMpOrderApiLog
     dbName: jhlog
   logger:

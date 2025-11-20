@@ -60,6 +60,8 @@ class RabbitMQClient:
         self._reconnect_interval = reconnect_interval
         self.exchange = exchange
         self.routing_key = routing_key
+        self.connect()
+
 
     def connect(self, max_retries: int = 3) -> None:
         """建立连接（带简单重试）"""

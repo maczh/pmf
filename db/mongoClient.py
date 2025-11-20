@@ -30,7 +30,7 @@ class mongo:
             self.db.command('version')
             return True
         except Exception as e:
-            print(f"MongoDB connection check failed: {e}")
+            logging.error(f"MongoDB connection check failed: {e}")
             self.client = MongoClient(self.uri,minPoolSize=self.pool_size, maxPoolSize=self.max_overflow)
             self.db = self.client[self.db_name]
             return False

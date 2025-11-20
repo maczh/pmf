@@ -1,0 +1,7 @@
+pmf:
+  rustfs:
+    endpoint: http://127.0.0.1:9000
+    region: us-east-1
+    access_key: 6spPGjUuqz3x2H0LAgW4
+    secret_key: HRD0aqf8ksuYn7dXEAjzwp563U4ZKFChJVGBevWr
+    bucket: jihai

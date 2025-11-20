@@ -4,12 +4,15 @@ import time
 
 class MQTTClient:
     def __init__(self, broker:str, port: int=1883, client_id: str=None, username: str=None, password: str=None, first_reconnect_delay: int=1, reconnect_rate: int=2, max_reconnect_count: int=12, max_reconnect_delay: int=60):
-        self.client = mqtt.Client(client_id)
+        self.client = mqtt.Client(
+            client_id=client_id,
+            callback_api_version=mqtt.CallbackAPIVersion.VERSION2
+        )
         if username and password:
             self.client.username_pw_set(username, password)
         self.broker = broker
         self.port = port
-        self.client.on_connect = self.on_connect
+        # self.client.on_connect = self.on_connect
         self.connect()
 
     def connect(self):

@@ -1,0 +1,15 @@
+pmf:
+  data:
+    mqtt:
+      broker: 127.0.0.1
+      port: 1883
+      client_id: kmp-mqtt-client
+      username: jhkmp
+      password: t2RtU2HuM4^3
+      subscribe:
+        - topic: up/jh/kmp/order/#
+          qos: 0
+          handlerFuncName: testHandler
+        - topic: up/jh/kmp/cart/#
+          qos: 0
+          handlerFuncName: testHandler

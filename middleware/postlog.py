@@ -6,8 +6,8 @@ import os
 import json
 
 # 添加项目根目录到Python路径
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+# project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, project_root)
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
+       
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
         start_dt = datetime.utcnow()
@@ -79,9 +80,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         }
 
         # 保存到 MongoDB
-        if app.app.client.mgo is not None:
-            logger.debug("开始写入mongodb日志")
-            app.app.client.mgo.get_collection(app.app.config.pmf.log.req.to_primitive()).insert_one(log_data)
+        # myapp = app.get_app()
+        # print(f"myapp:{myapp}")
+        # if myapp.client.mgo is not None:
+        #     logger.debug("开始写入mongodb日志")
+        #     myapp.client.mgo.get_collection(myapp.config.pmf.log.req.to_primitive()).insert_one(log_data)
 
         return response
 

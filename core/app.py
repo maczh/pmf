@@ -4,10 +4,13 @@ import sys
 from pathlib import Path
 
 # 添加项目根目录到Python路径
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-from config import load_yaml_config,get_plugin_config
-from db import RedisClient,mongo,mysql
+# project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, project_root)
+from config.yaml_config import load_yaml_config,YamlConfig
+from config.config import get_plugin_config
+from db.redisClient import RedisClient
+from db.mysqlClient import mysql
+from db.mongoClient import mongo
 from registry import etcdRegistry,consulRegistry,polarisRegistry,nacosRegistry
 from fastapi import FastAPI
 from utils import iputil
@@ -39,6 +42,7 @@ class App:
 
     def __init__(self, config_file):
         self.config_file = config_file
+        self.config_path = os.path.dirname(config_file)
         self.config = load_yaml_config(config_file)
         self.init_clients()
 
@@ -52,10 +56,9 @@ class App:
         cfg_env = self.config.pmf.config.env.to_primitive()
         cfg_ext = self.config.pmf.config.type.to_primitive()
         app_project = self.config.pmf.application.project.to_primitive()
-        local_path = os.path.dirname(os.path.join(project_root,self.config_file))
         used_clients = self.config.pmf.config.used.to_primitive().split(",")
         if "redis" in used_clients:
-            redis_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.redis.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            redis_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.redis.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化Redis客户端,配置信息为：{redis_config}")
             self.client.redis = RedisClient(host=redis_config.pmf.data.redis.host.to_primitive(), 
                                             port=redis_config.pmf.data.redis.port.to_primitive(),
@@ -66,7 +69,7 @@ class App:
             logger.debug(f"Redis客户端初始化完成")
             
         if "mysql" in used_clients:
-            mysql_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mysql.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            mysql_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mysql.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化MySQL客户端,配置信息为：{mysql_config}")
             self.client.mysql = mysql(uri=mysql_config.pmf.data.mysql.to_primitive(), 
                                       pool_size=mysql_config.pmf.data.mysql_pool.max.to_primitive(),
@@ -75,7 +78,7 @@ class App:
             logger.debug(f"MySQL客户端初始化完成")
             
         if "mongo" in used_clients:
-            mgo_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mongo.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            mgo_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mongo.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化Mongo客户端,配置信息为：{mgo_config}")
             self.client.mgo = mongo(uri=mgo_config.pmf.data.mongodb.uri.to_primitive(), 
                                     db_name=mgo_config.pmf.data.mongodb.db.to_primitive(),
@@ -83,7 +86,7 @@ class App:
             logger.debug(f"Mongo客户端初始化完成")
             
         if "etcd" in used_clients:
-            etcd_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.etcd.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            etcd_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.etcd.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在将服务注册到Etcd,配置信息为：{etcd_config}")
             self.client.etcd = etcdRegistry.EtcdRegistry(host=etcd_config.pmf.etcd.server.to_primitive(),
                                             port=etcd_config.pmf.etcd.port.to_primitive())
@@ -109,7 +112,7 @@ class App:
             logger.debug(f"Etcd服务注册完成")
             
         if "consul" in used_clients:
-            consul_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.consul.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            consul_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.consul.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在将服务注册到Consul,配置信息为：{consul_config}")
             self.client.consul = consulRegistry.ConsulRegistry(host=consul_config.pmf.consul.server.to_primitive(),
                                                 port=consul_config.pmf.consul.port.to_primitive())
@@ -134,7 +137,7 @@ class App:
             logger.debug(f"Consul服务注册完成")
 
         if "mqtt" in used_clients:
-            mqtt_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mqtt.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            mqtt_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.mqtt.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化MQTT客户端,配置信息为：{mqtt_config}")
             self.client.mqtt = MQTTClient(broker=mqtt_config.pmf.data.mqtt.broker.to_primitive(),
                                         port=mqtt_config.pmf.data.mqtt.port.to_primitive(),
@@ -144,7 +147,7 @@ class App:
             logger.debug(f"MQTT客户端初始化完成")
 
         if "rabbit" in used_clients:
-            rabbit_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rabbit.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            rabbit_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rabbit.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化RabbitMQ客户端,配置信息为：{rabbit_config}")
             self.client.rabbitmq = RabbitMQClient(host=rabbit_config.pmf.rabbit.host.to_primitive(),
                                         port=rabbit_config.pmf.rabbit.port.to_primitive(),
@@ -154,7 +157,7 @@ class App:
             logger.debug(f"RabbitMQ客户端初始化完成")
             
         if "s3" in used_clients:
-            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.s3.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.s3.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化S3客户端,配置信息为：{s3_config}")
             self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.s3.endpoint.to_primitive(),
                                        region_name=s3_config.pmf.s3.region.to_primitive(),
@@ -164,7 +167,7 @@ class App:
             logger.debug(f"S3客户端初始化完成")
 
         if "ceph" in used_clients:
-            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.ceph.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.ceph.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化ceph客户端,配置信息为：{s3_config}")
             self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.ceph.endpoint.to_primitive(),
                                        region_name=s3_config.pmf.ceph.region.to_primitive(),
@@ -174,7 +177,7 @@ class App:
             logger.debug(f"ceph客户端初始化完成")
 
         if "minio" in used_clients:
-            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.minio.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.minio.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化MinIO客户端,配置信息为：{s3_config}")
             self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.minio.endpoint.to_primitive(),
                                        region_name=s3_config.pmf.minio.region.to_primitive(),
@@ -184,7 +187,7 @@ class App:
             logger.debug(f"MinIO客户端初始化完成")
 
         if "rustfs" in used_clients:
-            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rustfs.to_primitive(), cfg_env, cfg_ext, app_project,local_path)
+            s3_config = get_plugin_config(cfg_server, cfg_server_addr, self.config.pmf.config.prefix.rustfs.to_primitive(), cfg_env, cfg_ext, app_project,self.config_path)
             logger.debug(f"正在初始化RustFS客户端,配置信息为：{s3_config}")
             self.client.s3 = S3Manager(endpoint_url=s3_config.pmf.rustfs.endpoint.to_primitive(),
                                        region_name=s3_config.pmf.rustfs.region.to_primitive(),
@@ -194,3 +197,11 @@ class App:
             logger.debug(f"RustFS客户端初始化完成")
 
 app: App = None
+
+def set_app(var_app: App):
+    global app
+    app = var_app
+    
+def get_app():
+    global app
+    return app

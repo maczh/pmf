@@ -6,6 +6,7 @@ from sqlalchemy import  text
 from sqlalchemy.orm import  Session, declarative_base
 from fastapi import APIRouter
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 # 添加项目根目录到Python路径
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,6 +57,13 @@ def post_mqtt_msg(req: SendMqttMsgReq):
 if __name__ == "__main__":
     myapp = app.App(config_file="test/kmp.yml")
     myapp.app.add_middleware(LoggingMiddleware)
+    myapp.app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     myapp.app.include_router(router)
     app.app = myapp
     myapp.run()

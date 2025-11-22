@@ -6,7 +6,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 # project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.insert(0, project_root)
-from config.yaml_config import load_yaml_config,YamlConfig
+from config.yaml_config import load_yaml_config
 from config.config import get_plugin_config
 from db.redisClient import RedisClient
 from db.mysqlClient import mysql
@@ -45,6 +45,10 @@ class App:
         self.config_path = os.path.dirname(config_file)
         self.config = load_yaml_config(config_file)
         self.init_clients()
+        global app
+        app = self
+        
+    
 
     def run(self):
         uvicorn.run(self.app, host="0.0.0.0", port=self.config.pmf.application.port.to_primitive())
@@ -198,10 +202,10 @@ class App:
 
 app: App = None
 
-def set_app(var_app: App):
-    global app
-    app = var_app
+# def set_app(var_app: App):
+#     global app
+#     app = var_app
     
-def get_app():
-    global app
-    return app
+# def get_app():
+#     global app
+#     return app

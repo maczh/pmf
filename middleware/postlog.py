@@ -11,7 +11,8 @@ import json
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from core import app
+from core import app as app_core
+
 
 # 配置 logging
 # logging.basicConfig(
@@ -81,7 +82,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         # 保存到 MongoDB
         # myapp = app.get_app()
-        # print(f"myapp:{myapp}")
+        print(f"myapp:{app_core.app}")
         # if myapp.client.mgo is not None:
         #     logger.debug("开始写入mongodb日志")
         #     myapp.client.mgo.get_collection(myapp.config.pmf.log.req.to_primitive()).insert_one(log_data)
